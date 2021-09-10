@@ -1,25 +1,36 @@
 package convert
 
 import (
-	"fmt"
-	"github.com/h2non/bimg"
+	"github.com/kolesa-team/go-webp/encoder"
+	"github.com/kolesa-team/go-webp/webp"
+	"image/jpeg"
+	"log"
 	"os"
 )
 
 func ToWebp(src, dst string) {
-	buffer, err := bimg.Read(src)
+	file, err := os.Open(src)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		log.Fatalln(err)
 	}
 
-	newImage, err := bimg.NewImage(buffer).Convert(bimg.WEBP)
+	img, err := jpeg.Decode(file)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		log.Fatalln(err)
 	}
 
-	if bimg.NewImage(newImage).Type() == "webp" {
-		fmt.Fprintln(os.Stderr, "The image was converted into webp")
+	output, err := os.Create(dst)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer output.Close()
+
+	options, err := encoder.NewLossyEncoderOptions(encoder.PresetDefault, 75)
+	if err != nil {
+		log.Fatalln(err)
 	}
 
-	bimg.Write(dst, newImage)
+	if err := webp.Encode(output, img, options); err != nil {
+		log.Fatalln(err)
+	}
 }
