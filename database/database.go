@@ -9,7 +9,12 @@ import (
 
 func Add(fileName string) {
 	db, err := sql.Open("mysql", "http@tcp(localhost:3306)/new_ekazan")
-	defer db.Close()
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(db)
 
 	if err != nil {
 		log.Fatal(err)

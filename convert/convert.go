@@ -23,7 +23,12 @@ func ToWebp(src, dst string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer output.Close()
+	defer func(output *os.File) {
+		err := output.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(output)
 
 	options, err := encoder.NewLossyEncoderOptions(encoder.PresetDefault, 75)
 	if err != nil {
