@@ -4,34 +4,47 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
-	"log"
+	"imgoptimizer/config"
 )
 
-func Add(fileName string) {
-	db, err := sql.Open("mysql", "http@tcp(localhost:3306)/new_ekazan")
-	defer func(db *sql.DB) {
-		err := db.Close()
-		if err != nil {
-			panic(err)
-		}
-	}(db)
+type Db struct {
+	con *sql.DB
+}
+
+func (db *Db) Add(fileName string) (int64, error) {
+	query := "INSERT IGNORE INTO webp (name) VALUES (?)"
+	res, err := db.con.Exec(query, fileName)
 
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	query := "INSERT INTO webp (name) VALUES(?)"
-	res, err := db.Exec(query, fileName)
-
-	if err != nil {
-		panic(err.Error())
+		return 0, err
 	}
 
 	lastId, err := res.LastInsertId()
-
 	if err != nil {
-		log.Fatal(err)
+		return 0, err
 	}
 
-	fmt.Printf("The last inserted row id: %d\n", lastId)
+	return lastId, nil
+}
+
+func New(conf *config.Conf) (*Db, error) {
+	var db Db
+	var err error
+
+	if conf.Database.Connection == "" {
+		return nil, fmt.Errorf("нет данных для подключения")
+	}
+
+	db.con, err = sql.Open("mysql", conf.Database.Connection)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = db.con.Ping(); err != nil {
+		return nil, err
+	}
+
+	defer db.con.Close()
+
+	return &db, nil
 }

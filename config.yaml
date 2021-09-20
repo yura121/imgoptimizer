@@ -1,0 +1,4 @@
+database:
+  connection: ""
+converter:
+  quality: 75
