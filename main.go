@@ -32,7 +32,12 @@ func main() {
 		fmt.Println("Результат не был записан в БД:", dbErr)
 	} else {
 		_, fileName := filepath.Split(src)
-		lastId, _ := db.Add(fileName)
-		fmt.Println("Добавлена запись под номером", lastId)
+		lastId, addErr := db.Add(fileName)
+		if addErr != nil {
+			fmt.Println("Ошибка при добавлении новой записи в таблицу:", addErr)
+		} else {
+			fmt.Println("В таблицу добавлена новая запись под номером", lastId)
+		}
 	}
+	defer db.Close()
 }

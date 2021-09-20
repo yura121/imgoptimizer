@@ -11,6 +11,12 @@ type Db struct {
 	con *sql.DB
 }
 
+func (db *Db) Close() {
+	if db != nil && db.con != nil {
+		db.con.Close()
+	}
+}
+
 func (db *Db) Add(fileName string) (int64, error) {
 	query := "INSERT IGNORE INTO webp (name) VALUES (?)"
 	res, err := db.con.Exec(query, fileName)
@@ -43,8 +49,6 @@ func New(conf *config.Conf) (*Db, error) {
 	if err = db.con.Ping(); err != nil {
 		return nil, err
 	}
-
-	defer db.con.Close()
 
 	return &db, nil
 }
